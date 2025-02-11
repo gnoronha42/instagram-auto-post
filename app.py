@@ -62,19 +62,3 @@ def upload():
 if __name__ == "__main__":
     app.run(debug=True)
 
-
-curl -X POST "https://graph.facebook.com/v21.0/17841470274161446/messages" \
-  -H "Authorization: Bearer EAANTHhSIYhUBO5I5fSjse2Q8KZADGsjXFOkbhbCZACgszeNjG7MCXbMhYuyV0iUH7g3KCwOBFgt2R10GLHsitV69r6YcLH8IOQVU41jELdaqVY9bj4vNUuntjYAZCLW065DRXN4LM8no2yqGKZCApaLUFmasZBQKw8CQ7tdectgzW8CaRP0m1u0kjrdv6F6ZAeathfxrP92JY1Pu6UKgZDZD" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipient": {
-      "id": "108363574631629"
-    },
-    "message": {
-      "text": "Hello Flor de Maria, this is a test message from my Instagram bot!"
-    }
-  }'
-
-
-
-curl -X GET "https://graph.facebook.com/v21.0/
