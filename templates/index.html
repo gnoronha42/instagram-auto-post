@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Uploader</title>
+    <style>
+        :root {
+            --primary-color: #405DE6;
+            --hover-color: #5B7BE9;
+            --background-color: #fafafa;
+            --border-color: #dbdbdb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: #262626;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .upload-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #262626;
+        }
+
+        .file-group {
+            margin-bottom: 20px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .file-group:hover {
+            border-color: var(--primary-color);
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            background-color: #fafafa;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #fafafa;
+            border: 1px solid var(--border-color);
+            color: #262626;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--hover-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        #responseMessage {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+                padding: 16px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-form">
+            <h1>Upload para Instagram</h1>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div id="fileInputs">
+                    <div class="file-group">
+                        <input type="file" name="file0" accept="image/*" required>
+                        <input type="text" name="caption0" placeholder="Digite a legenda para este post">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="addMoreFiles()">
+                        Adicionar mais arquivos
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        Publicar no Instagram
+                    </button>
+                </div>
+            </form>
+            <div id="responseMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let fileCount = 1;
+
+        function addMoreFiles() {
+            const fileInputs = document.getElementById("fileInputs");
+            const newInput = document.createElement("div");
+            newInput.className = "file-group";
+            newInput.innerHTML = `
+                <input type="file" name="file${fileCount}" accept="image/*" required>
+                <input type="text" name="caption${fileCount}" placeholder="Digite a legenda para este post">
+            `;
+            fileInputs.appendChild(newInput);
+            fileCount++;
+        }
+
+        document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const responseMessage = document.getElementById("responseMessage");
+            
+            try {
+                submitButton.disabled = true;
+                submitButton.textContent = "Enviando...";
+                
+                const formData = new FormData(e.target);
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                responseMessage.textContent = result.message || result.error;
+                responseMessage.className = response.ok ? "success" : "error";
+            } catch (error) {
+                responseMessage.textContent = "Erro ao enviar os arquivos. Tente novamente.";
+                responseMessage.className = "error";
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Publicar no Instagram";
+            }
+        });
+    </script>
+</body>
+</html> 
