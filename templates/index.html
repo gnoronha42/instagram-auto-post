@@ -125,6 +125,36 @@
             color: #c62828;
         }
 
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .improved-caption {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border: 1px solid #add8e6;
+            border-radius: 4px;
+            color: #262626;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 20px auto;
@@ -146,15 +176,23 @@
                     <div class="file-group">
                         <input type="file" name="file0" accept="image/*" required>
                         <input type="text" name="caption0" placeholder="Digite a legenda para este post">
+                        <div class="improved-caption" id="improvedCaption0" style="display: none;"></div>
                     </div>
                 </div>
                 <div class="button-group">
                     <button type="button" class="btn-secondary" onclick="addMoreFiles()">
                         Adicionar mais arquivos
                     </button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn-primary" onclick="improveCaption()">
+                        Aprimorar Legenda
+                    </button>
+                    <button type="submit" class="btn-primary" id="publishButton" disabled>
                         Publicar no Instagram
                     </button>
+                </div>
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Aprimorando legenda...</p>
                 </div>
             </form>
             <div id="responseMessage"></div>
@@ -171,20 +209,59 @@
             newInput.innerHTML = `
                 <input type="file" name="file${fileCount}" accept="image/*" required>
                 <input type="text" name="caption${fileCount}" placeholder="Digite a legenda para este post">
+                <div class="improved-caption" id="improvedCaption${fileCount}" style="display: none;"></div>
             `;
             fileInputs.appendChild(newInput);
             fileCount++;
+        }
+
+        async function improveCaption() {
+            const captionInput = document.querySelector('input[name="caption0"]');
+            const improvedCaptionDiv = document.getElementById("improvedCaption0");
+            const loading = document.getElementById("loading");
+            const publishButton = document.getElementById("publishButton");
+
+            if (!captionInput.value.trim()) {
+                alert("Por favor, digite uma legenda antes de aprimorar.");
+                return;
+            }
+
+            try {
+                loading.style.display = "block";
+                const response = await fetch("/improve-caption", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ caption: captionInput.value }),
+                });
+
+                const result = await response.json();
+                if (result.improved_caption) {
+                    improvedCaptionDiv.textContent = result.improved_caption;
+                    improvedCaptionDiv.style.display = "block";
+                    publishButton.disabled = false;
+                } else {
+                    alert("Erro ao aprimorar a legenda. Tente novamente.");
+                }
+            } catch (error) {
+                alert("Erro ao aprimorar a legenda. Tente novamente.");
+            } finally {
+                loading.style.display = "none";
+            }
         }
 
         document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const submitButton = e.target.querySelector('button[type="submit"]');
             const responseMessage = document.getElementById("responseMessage");
-            
+            const loading = document.getElementById("loading");
+
             try {
                 submitButton.disabled = true;
                 submitButton.textContent = "Enviando...";
-                
+                loading.style.display = "block";
+
                 const formData = new FormData(e.target);
                 const response = await fetch("/upload", {
                     method: "POST",
@@ -201,8 +278,9 @@
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = "Publicar no Instagram";
+                loading.style.display = "none";
             }
         });
     </script>
 </body>
-</html> 
+</html>
